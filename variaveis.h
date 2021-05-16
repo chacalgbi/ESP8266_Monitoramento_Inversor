@@ -8,11 +8,10 @@ char auth[] = "wfX7sEbCeRYoMPX4wYG8oUUVrI9fM1WB";
 float temp_dht = 0;
 float umi_dht = 0; 
 float bat1   = 0;
-float tensao1   = 0;
 
-int x = 0;
 int tensao_minima = 0;
 
+bool inverter = false;
 bool serial_ativo  = false;
 bool error_conect = false;
 bool limite_AC1_trava = false;

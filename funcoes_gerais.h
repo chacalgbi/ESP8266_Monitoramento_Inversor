@@ -22,16 +22,16 @@ void gravar(byte posicao, bool var){
   delay(50);
 }
 
-void verifica_conexao_blynk(){ // Pisca o LED do App.
+void verifica_conexao(){ // Pisca o LED do App.
   if(error_conect == true){
-    if(x==0){x=1; led_ativo.on();  pino(led, 1); }
-    if(x==2){x=0; led_ativo.off(); pino(led, 0); }
-    if(x==1){x=2;} 
+    if(inverter){led_ativo.on();  digitalWrite(led, HIGH);}
+    else{led_ativo.off(); digitalWrite(led, LOW);}
   }
   else{
-    pino(led, 0);
-    x=0;
+    digitalWrite(led, LOW);
   }
+
+  inverter = !inverter;
 }
 
 void converter_strings(){
@@ -207,15 +207,16 @@ void iniciar_OTA(){
 void conecta_wifi_blynk(char* ssid_, char* pw_){
 
   if(WiFi.status() != WL_CONNECTED){
+    int contador = 0;
     WiFi.disconnect(); 
     delay(500);
     WiFi.mode(WIFI_STA);
     delay(100);
     WiFi.begin(ssid_, pw_);
     delay(100);
-    while ( x <= 20) {
+    while ( contador <= 20) {
       restart_();
-      if (WiFi.status() == WL_CONNECTED){ x = 50; break; }
+      if (WiFi.status() == WL_CONNECTED){ contador = 50; break; }
       delay(1000);
     }
     if (WiFi.status() == WL_CONNECTED){
@@ -244,4 +245,8 @@ void conecta_wifi_blynk(char* ssid_, char* pw_){
     }
   }
 
+}
+
+void chama_conecta_wifi_blynk(){
+  conecta_wifi_blynk(ssid, pw);
 }

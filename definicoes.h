@@ -11,10 +11,12 @@
 #include <EEPROM.h>
 #include <WidgetRTC.h>
 #include <TimeLib.h>
-#include "DHT.h"
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
 
-#define DHTTYPE DHT22
-#define dhtpin       4 // DHT22
+#define DHTTYPE DHT11
+#define DHTPIN       4 // DHT22
 #define config_wifi 16 // Input
 #define led         14 // LED da Placa
 #define rele1        5 // rele1
