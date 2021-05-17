@@ -16,21 +16,24 @@ void log_serial(String x){
   }
 }
 
-void gravar(byte posicao, bool var){
-  EEPROM.write(posicao,var);
-  EEPROM.commit();
-  delay(50);
-}
-
 void verifica_conexao(){ // Pisca o LED do App.
+  int tempo = 40;
   if(error_conect == true){
     if(inverter){led_ativo.on();  digitalWrite(led, HIGH);}
     else{led_ativo.off(); digitalWrite(led, LOW);}
   }
   else{
-    digitalWrite(led, LOW);
+    if (WiFi.status() == WL_CONNECTED){ // Se não tiver internet, mas tiver rede, pisca rapidamente 4 vezes a cada 1 segundo
+      for( int i=0; i<5; i++){
+        digitalWrite(led, !digitalRead(led));
+        delay(tempo);
+      }
+      digitalWrite(led, LOW);
+    }
+    else{ // Se não tiver internet nem rede mas a energia estiver OK e o módulo funcionando, mantém o LED ligado
+      digitalWrite(led, HIGH);
+    }
   }
-
   inverter = !inverter;
 }
 
@@ -48,7 +51,15 @@ void converter_strings(){
 void formatFS(void){
   LittleFS.format();
 }
- 
+
+void indicador_inicilizacao(){
+  for( int i=0; i<50; i++){
+    digitalWrite(led, !digitalRead(led));
+    delay(50);
+  }
+  digitalWrite(led, LOW);
+}
+
 void createFile(void){
   File wFile;
  
@@ -188,6 +199,7 @@ void Formatar_data_hora(){ // A cada 8 segundos atualiza a Hora, Apita de Hora e
   if(error_conect == true && iniciar == false){  // apenas quando ligar
     iniciar = true;
     mostrar_terminal("Iniciado");
+    Blynk.virtualWrite(V5, LOW);
   }
 }
 

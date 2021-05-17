@@ -5,21 +5,6 @@ void iniciar_modulos(){
   dht.humidity().getSensor(&sensor);
 }
 
-/*
-void leituras_dht(){
-  umi_dht  = dht.readHumidity();
-  temp_dht = dht.readTemperature();
-  
-  if (isnan(umi_dht) || isnan(temp_dht)){
-    dht_str = "Erro Temp";
-    return;
-  }
-  else{
-    dht_str = String(temp_dht,1) + "C, " + String(umi_dht,0) + "%";
-  }
-}
-*/
-
 void leituras_dht(){
   sensors_event_t event;
   dht.temperature().getEvent(&event);
@@ -40,7 +25,7 @@ void leituras_dht(){
     umi_dht = event.relative_humidity;
   }
 
-  dht_str = String(temp_dht,1) + "C, " + String(umi_dht,0) + "%";
+  dht_str = String(temp_dht,0) + "C  " + String(umi_dht,0) + "%";
 
 }
 
