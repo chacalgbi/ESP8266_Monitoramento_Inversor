@@ -9,6 +9,7 @@ BLYNK_WRITE(V3){ // Comandos terminal
   String log_terminal = param.asStr();
        if(log_terminal.substring(0,4)  == "Info")        {
         terminal.clear();
+        terminal.println("Placa: " + NOME);
         terminal.println("IP: " + IP);
         terminal.println("Rede: " + String(ssid));
         terminal.println("Limite Bateria: " + String(bat_minima,1) + "V");
@@ -47,7 +48,6 @@ BLYNK_WRITE(V3){ // Comandos terminal
       EEPROM.write(0, tensao_minima);
       EEPROM.commit();
       delay(50);
-      terminal.println("Tensão Mínima" + String(EEPROM.read(0))); terminal.flush();
     }
   }
   else if(log_terminal.substring(0,8)  == "Bateria+")    {
@@ -145,7 +145,7 @@ void ler_tensao(){
     delay(10);
   }
   x = x / 10;
-  bat1 = (0.0009775 * x) * 22.69;
+  bat1 = (0.0009775 * x) * bat_const;
   bat1_str = String(bat1,1) + "V";
 }
 
