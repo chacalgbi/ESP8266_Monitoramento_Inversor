@@ -18,10 +18,11 @@ float bat_const = 22.69; // placa 1
 //float bat_const = 22.78; // placa 3
 
 byte tensoes = 0;
-
+byte limite_temp = 0;
 byte tensao_minima = 0;
 byte tensao_normal = 0;
 
+bool trava_temp = false;
 bool inverter = false;
 bool serial_ativo  = false;
 bool error_conect = false;

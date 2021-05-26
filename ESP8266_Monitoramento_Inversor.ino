@@ -12,6 +12,7 @@ BLYNK_WRITE(V3){ // Comandos terminal
         terminal.println("Placa: " + NOME);
         terminal.println("IP: " + IP);
         terminal.println("Rede: " + String(ssid));
+        terminal.flush();
         terminal.println("Limite Bateria: " + String(bat_minima,1) + "V");
         terminal.println("Bateria Normal: " + String(bat_normal,1) + "V");
         terminal.flush();
@@ -19,6 +20,8 @@ BLYNK_WRITE(V3){ // Comandos terminal
   else if(log_terminal.substring(0,3)  == "Cmd")         {
         terminal.clear();
         terminal.println(F("Limpar Limpar o terminal"));
+        terminal.println(F("Cmd Lista todos os comandos"));
+        terminal.println(F("Temp:35 Seta a Temperatura maxima pra 35 graus"));
         terminal.println(F("Info Mostra as configurações salvas "));
         terminal.println(F("Reset Da um reboot no sistema"));
         terminal.println(F("Bateria-10.8 Liga Relé em 10.8V"));
@@ -64,6 +67,19 @@ BLYNK_WRITE(V3){ // Comandos terminal
       delay(50);
     }
   }
+  else if(log_terminal.substring(0,5)  == "Temp:")       {
+    String local = log_terminal.substring(5);
+    limite_temp = local.toInt();
+    if(limite_temp == 0){
+      terminal.println("Digite um número válido!"); terminal.flush();
+    }
+    else{
+      terminal.println("Limite de Temperatura: " + String(limite_temp) + " Graus"); terminal.flush();
+      EEPROM.write(2, limite_temp);
+      EEPROM.commit();
+      delay(50);
+    }
+  }
   else{
     terminal.println("Comando Inválido!");        terminal.flush();  
   }
@@ -92,7 +108,8 @@ void normal(){
   timer.setInterval(  2000L,  AC_Bateria);
   timer.setInterval(  3000L,  ler_tensao);
   timer.setInterval(  8000L,  Formatar_data_hora);
-  timer.setInterval( 20000L,  leituras_dht);
+  timer.setInterval( 25000L,  leituras_dht);
+  timer.setInterval( 26000L,  verifica_temperatura);
   timer.setInterval( 30000L,  chama_conecta_wifi_blynk);
 
   ler_tensao();
@@ -107,16 +124,43 @@ void normal_loop(){
   error_conect = Blynk.connected();
 }
 
+void verifica_temperatura(){
+  if (trava_temp == false && temp_dht > limite_temp){
+    trava_temp = true;
+    mostrar_terminal("Temperatura acima do limte estabelecido");
+    Blynk.notify(NOME + ": Temperatura acima do limte estabelecido. " + String(temp_dht,1) + "C");
+  }
+
+  if (trava_temp == true && temp_dht < limite_temp-3){
+    trava_temp = false;
+    mostrar_terminal("Temperatura Normalizada");
+    Blynk.notify(NOME + ": Temperatura Normalizada. " + String(temp_dht,1) + "C");
+  }
+}
+
 void AC_Bateria(){
   if(digitalRead(AC_in)) { led_AC_in.on();  Sem_AC_IN=false;  } else { led_AC_in.off();  Sem_AC_IN=true;  }
-  if(digitalRead(AC_out)){ led_AC_out.on(); Sem_AC_OUT=false; } else { led_AC_out.off(); Sem_AC_OUT=true; }
+  
+    //vai ligar o led falha quando tiver sem energia na saída/out
+  if(digitalRead(AC_out)){ led_AC_out.off(); Sem_AC_OUT=false; } else { led_AC_out.on(); Sem_AC_OUT=true; }
 
   if(iniciar == true){
-    if(Sem_AC_IN  == false && trava_AC_IN  == false){ mostrar_terminal("AC IN ON");  trava_AC_IN  = true; }
-    if(Sem_AC_OUT == false && trava_AC_OUT == false){ mostrar_terminal("AC OUT ON"); trava_AC_OUT = true; }
+    if(Sem_AC_IN  == false && trava_AC_IN  == false){ mostrar_terminal("Entrada AC Normalizada");  trava_AC_IN  = true; }
+    if(Sem_AC_OUT == false && trava_AC_OUT == false){ mostrar_terminal("Inversor Normalizado"); trava_AC_OUT = true; }
+
   
-    if(Sem_AC_IN  == true && trava_AC_IN  == true){ mostrar_terminal("AC IN OFF");  trava_AC_IN  = false; Blynk.notify(NOME + ": Tensão da Entrada AC está ausente"); }
-    if(Sem_AC_OUT == true && trava_AC_OUT == true){ mostrar_terminal("AC OUT OFF"); trava_AC_OUT = false; Blynk.notify(NOME + ": Tensão da Saída AC está ausente"); }
+    if(Sem_AC_IN  == true && trava_AC_IN  == true){
+      mostrar_terminal("Entrada AC sem Tensão"); 
+      trava_AC_IN  = false;
+      Blynk.notify(NOME + ": Tensão da Entrada AC está ausente");
+      }
+      
+    // Quando não tiver tensao AC na saida/out envia essas msgs
+    if(Sem_AC_OUT == true && trava_AC_OUT == true){
+      mostrar_terminal("Falha no Inversor. Inversor no ByPass.");
+      trava_AC_OUT = false;
+      Blynk.notify(NOME + ": Falha no Inversor. Inversor no ByPass.");
+      }
   }
 
   if( trava_bateria == false && bat1 < bat_minima ){
@@ -161,6 +205,7 @@ void setup() {
   EEPROM.begin(10);
   tensao_minima = EEPROM.read(0);
   tensao_normal = EEPROM.read(1);
+  limite_temp   = EEPROM.read(2);
   bat_minima = tensao_minima / 10.0;
   bat_normal = tensao_normal / 10.0;
   

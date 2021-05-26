@@ -25,7 +25,7 @@ void leituras_dht(){
     umi_dht = event.relative_humidity;
   }
 
-  dht_str = String(temp_dht,0) + "C  " + String(umi_dht,0) + "%";
+  dht_str = String(temp_dht,1) + "C  " + String(umi_dht,0) + "%";
 
 }
 
